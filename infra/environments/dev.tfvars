@@ -1,0 +1,16 @@
+resource_group_name         = "dev-resource-group"
+location                   = "East US"
+vnet_name                  = "dev-vnet"
+vnet_address_space         = ["10.0.0.0/16"]
+app_gateway_subnet_name                = "dev-appgw_subnet"
+app_gateway_subnet_address_prefixes    = ["10.0.1.0/24"]
+app_insights_name           = "dev-appinsights"
+app_service_plan_name      = "dev-app-service-plan"
+app_service_plan_sku_name  = "B1"
+app_service_plan_os_type   = "Linux"
+app_service_name           = "dev-app-service"
+app_gateway_public_ip_name = "dev-app-gateway-pip"
+app_gateway_name           = "dev-app-gateway"
+app_gateway_sku_name       = "Standard_v2"
+app_gateway_sku_tier       = "Standard_v2"
+app_gateway_capacity       = 2

@@ -1,0 +1,16 @@
+resource_group_name         = "uat-resource-group"
+location                   = "East US"
+vnet_name                  = "uat-vnet"
+vnet_address_space         = ["10.0.0.0/16"]
+app_gateway_subnet_name                = "uat-appgw_subnet"
+app_gateway_subnet_address_prefixes    = ["10.0.1.0/24"]
+app_insights_name           = "uat-appinsights"
+app_service_plan_name      = "uat-app-service-plan"
+app_service_plan_sku_name  = "P1V3"
+app_service_plan_os_type   = "Linux"
+app_service_name           = "uat-app-service"
+app_gateway_public_ip_name = "uat-app-gateway-pip"
+app_gateway_name           = "uat-app-gateway"
+app_gateway_sku_name       = "Standard_v2"
+app_gateway_sku_tier       = "Standard_v2"
+app_gateway_capacity       = 2

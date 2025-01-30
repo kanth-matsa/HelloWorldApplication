@@ -1,0 +1,95 @@
+name: Deploy sample hello world application into azure app service
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - uat
+
+jobs:
+  infra:
+    name: Provision Azure Infrastructure
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout the repository to the runner
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Log in to Azure using the provided credentials
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Set up Terraform CLI
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      # Initialize Terraform configuration
+      - name: Initialize Terraform
+        run: terraform init
+
+      # Apply Terraform configuration based on the branch
+      - name: Apply Terraform
+        run: |
+          if ["${{ github.ref }}" == "refs/heads/main"]; then
+            terraform apply -var-file="environments/prod.tfvars" -auto-approve 
+          elif ["${{ github.ref }}" == "refs/heads/dev"]; then
+            terraform apply -var-file="environments/dev.tfvars" -auto-approve 
+          elif ["${{ github.ref }}" == "refs/heads/uat"]; then
+            terraform apply -var-file="environments/uat.tfvars" -auto-approve 
+          fi
+
+  quality-gate:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    needs: infra
+    steps:
+      # Checkout the repository to the runner
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Run HTML linter to check HTML files
+      - name: Run HTML Linter (example: HTMLHint)
+        run: |
+          npm install -g htmlhint
+          htmlhint "src/index.html"
+
+      # Run static code analysis using SonarCloud
+      - name: Run Static Code Analysis (SonarCloud)
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          organization: ${{ secrets.SONAR_ORG }}
+          projectKey: ${{ secrets.SONAR_PROJECT_KEY }}
+          token: ${{ secrets.SONAR_TOKEN }}
+
+      # Check the quality gate status from SonarCloud
+      - name: Quality Gate Check
+        run: |
+          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }} "https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-project-key" | jq -r .projectStatus.status)
+          if [ "$STATUS" != "OK" ]; then
+            echo "Quality gate failed!"
+            exit 1
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  deploy:
+    name: Deploy to Azure App Service
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    
+    steps:
+      # Checkout the repository to the runner
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Deploy the application to the Azure Web App 
+      - name: Deploy to Azure Web App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{secrets.AZURE_WEBAPP_NAME}}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./src
