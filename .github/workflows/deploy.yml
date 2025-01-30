@@ -21,7 +21,9 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # Set up Terraform CLI
       - name: Set up Terraform
@@ -52,7 +54,7 @@ jobs:
         uses: actions/checkout@v3
 
       # Run HTML linter to check HTML files
-      - name: Run HTML Linter (example: HTMLHint)
+      - name: Run HTML Linter
         run: |
           npm install -g htmlhint
           htmlhint "src/index.html"
@@ -90,6 +92,6 @@ jobs:
       - name: Deploy to Azure Web App Service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{secrets.AZURE_WEBAPP_NAME}}
+          app-name: ${{env.AZURE_WEBAPP_NAME}}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./src
